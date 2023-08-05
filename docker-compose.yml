@@ -1,0 +1,115 @@
+version: '3'
+
+services:
+
+  # Discovery Service
+  discovery-service:
+    image: yaroing/discovery-service
+    ports:
+      - "8761:8761"
+
+  # Gateway
+  gateway:
+    image: yaroing/gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery-service
+
+  # Keycloak for authentication
+  keycloak:
+    image: jboss/keycloak
+    ports:
+      - "8180:8180"
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+
+  # Microservices with their respective MySQL databases
+
+  # Core Service
+  core-service-db:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=coredb
+    volumes:
+      - coredb:/var/lib/mysql
+
+  core-service:
+    image: yaroing/core-service
+    depends_on:
+      - core-service-db
+      - discovery-service
+      - keycloak
+
+  # Catalogue Service
+  catalogue-service-db:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=cataloguedb
+    volumes:
+      - cataloguedb:/var/lib/mysql
+
+  catalogue-service:
+    image: yaroing/catalogue-service
+    depends_on:
+      - catalogue-service-db
+      - discovery-service
+      - keycloak
+
+  # Partenaire Service
+  partenaire-service-db:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=partenairedb
+    volumes:
+      - partenairedb:/var/lib/mysql
+
+  partenaire-service:
+    image: yaroing/partenaire-service
+    depends_on:
+      - partenaire-service-db
+      - discovery-service
+      - keycloak
+
+  # Transfert Service
+  transfert-service-db:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=transfertdb
+    volumes:
+      - transfertdb:/var/lib/mysql
+
+  transfert-service:
+    image: yaroing/transfert-service
+    depends_on:
+      - transfert-service-db
+      - discovery-service
+      - keycloak
+
+  # Point Service
+  point-service-db:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=pointdb
+    volumes:
+      - pointdb:/var/lib/mysql
+
+  point-service:
+    image: yaroing/point-service
+    depends_on:
+      - point-service-db
+      - discovery-service
+      - keycloak
+
+volumes:
+  coredb:
+  cataloguedb:
+  partenairedb:
+  transfertdb:
+  pointdb:
